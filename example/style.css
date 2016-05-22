@@ -1,0 +1,162 @@
+html,body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-size: 13px;
+}
+html {
+    overflow-x: hidden;  
+    overflow-y: hidden;
+    background-color: #F1F3F6;
+}
+body {
+    margin: 0;
+    padding: 0;
+}
+a {text-decoration: none;}
+.right {float:right;}
+svg line, svg rect {
+    shape-rendering: crispEdges;
+}
+.panel-header {
+    padding:5px 5px 0;
+}
+.panel-header .group {
+    display: inline-block;
+    white-space: nowrap;
+    padding: 0;
+    font-size: 0;
+    vertical-align: top;
+}
+.panel-header span{
+    display: inline-block;
+    height: 14px;
+    position: relative;
+    vertical-align: top;
+    color: #524f4f;
+    font-size: 11px;
+    font-weight: bold;
+    background: #fff;
+    border: 1px solid #c9cbcd;
+    padding: 1px 8px 13px;
+    cursor: default;
+}
+.panel-header span:hover {
+    border-color: #A9A9A9;
+}
+.panel-header .text {
+    font-weight: 600;
+    padding: 8px 10px 6px;
+}
+.panel-header .iconed {
+    padding: 6px 8px 8px;
+}
+.panel-header .submenu {
+    padding: 0;
+    width: 20px;
+    height: 28px;
+    border-left: none;
+    
+}
+.panel-header .submenu i {
+    display: block;
+    width: 9px;
+    height: 5px;
+    position: absolute;
+    top: 12px;
+    right: 6px;
+    background: url("images/select.png");
+}
+.panel-header svg {
+    fill: #7D7D7D;
+}
+.panel .mouse-overlay {
+    opacity: 0;
+}
+.panel-legend {
+    z-index: 3;
+    position: absolute;
+    top: 50px;
+    left: 15px;
+    right: 5px;
+    margin: 0;
+    padding: 0;
+    color: #444;
+    line-height: normal;
+    white-space: nowrap;
+    pointer-events: none;
+    border: 0;
+    box-sizing: border-box;
+    background-color: transparent;
+}
+.panel-legend .panel-value-item {
+    padding: 0 3px;
+}
+.panel-main {
+    padding: 5px;
+}
+.line {
+    fill: none;
+    stroke: steelblue;
+    stroke-width: 1.5px;
+}
+.chart {
+    background-color: #FFFFFF;
+    border: solid #c9cbcd 1px;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+.chart .axis line, .chart .axis path {
+    stroke-width: 1;
+    fill: none;
+    stroke: rgba(189,195,205,.4);
+    shape-rendering: crispEdges;
+}
+.chart text {
+    font: 400 13px Helvetica,Arial,sans-serif;
+    fill: #333;
+}
+.chart .tick text {
+    font-size: 11px;
+}
+.chart text.label {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+.popup {
+    display: none;
+    overflow: auto;
+    width: 150px;
+    right: 7px;
+    top: 46px;
+    z-index: 50;
+    position: absolute;
+    border: 1px solid #aaadb1;
+    background: #fff;
+    z-index: 120;
+    margin: 0;
+}
+.popup .item {
+    display: block;
+    padding: 5px 7px 0 7px;
+    height: 30px;
+    position: relative;
+}
+.popup .item:hover, .popup .item.active {
+    background: #f4f7f9;
+}
+.popup .item .title {
+    width: 120px;
+    color: #595959;
+    vertical-align: top;
+    line-height: 25px;
+    padding-left: 5px;
+}
+.popup .item svg {
+    fill: #7d7d7d;
+}

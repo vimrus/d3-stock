@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+  <meta charset="utf-8">
+  <title>D3-stock</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+  <link href="style.css" rel="stylesheet" type="text/css" media="screen" />
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.3/d3.min.js' charset="utf-8"></script>
+  <script src='http://code.jquery.com/jquery-2.1.4.min.js' charset="utf-8"></script>
+  <script src='../stock.js' charset="utf-8"></script>
+</head>
+<body>
+  <div class="panel">
+    <div class="panel-header">
+      <div class="group style">
+        <span class="widget">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 26 26" width="26" height="26">
+            <path d="M16 3v3h-2v12h2v5h1v-5h2V6h-2V3h-1zM9 4v5H7v11h2v3h1v-3h2V9h-2V4H9zm-1 6h3v9H8v-9z"></path>
+          </svg>
+        </span>
+        <span class="submenu"><i></i></span>
+      </div>
+      <div class="group indicator">
+        <span class="text">Indicator</span>
+        <span class="submenu"><i></i></span>
+      </div>
+      <div class="group right">
+        <span class="iconed fullscreen">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 586.09999 586.09996" width="18" height="18" enable-background="new 0 0 595.3 841.9"><path d="M172.6 367.9l-97.7 97.7L0 390.7v195.4h195.4l-74.9-74.9 97.7-97.7-45.6-45.6zM195.4 0H0v195.4l74.9-74.9 97.7 97.7 45.6-45.6-97.7-97.7L195.4 0zm195.3 0l74.9 74.9-97.7 97.7 45.6 45.6 97.7-97.7 74.9 74.9V0H390.7zm22.8 367.9l-45.6 45.6 97.7 97.7-74.9 74.9h195.4V390.7l-74.9 74.9-97.7-97.7z"></path></svg>
+        </span>
+      </div>
+    </div>
+    <div class="panel-legend">
+      <div class="panel-value">
+        <span class="panel-value-item-wrap">O<span class="panel-value-item open"></span></span>
+        <span class="panel-value-item-wrap">H<span class="panel-value-item high"></span></span>
+        <span class="panel-value-item-wrap">L<span class="panel-value-item low"></span></span>
+        <span class="panel-value-item-wrap">C<span class="panel-value-item close"></span></span>
+      </div>
+    </div>
+    <div class="popup" id="style">
+      <a class="item active" href="#" key="candles">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 26 26" width="26" height="26"><path d="M16 3v3h-2v12h2v5h1v-5h2V6h-2V3h-1zM9 4v5H7v11h2v3h1v-3h2V9h-2V4H9zm-1 6h3v9H8v-9z"></path></svg>
+        <span class="title">Candles</span><span class="shortcut"></span>
+      </a>
+      <a class="item" href="#" key="line">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 595.3 841.9" enable-background="new 0 0 595.3 841.9" width="26" height="26"><path d="M142.5 447.4c-102.74 102.74-83.44 83.44 0 0m399-186.2l-70.9 94.6H370.1l-136 159.6-91.6-112.3-38.5 41.4L6.5 542l41.4 41.4 94.6-94.6 91.6 112.3 162.6-186.2h103.5l88.7-118.2z"></path></svg>
+        <span class="title">Line</span><span class="shortcut"></span>
+      </a>
+      <a class="item" href="#" key="area">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 595.3 841.9" enable-background="new 0 0 595.3 841.9" width="26" height="26"><path d="M453.8 360.2l-92.1 6L234 517.7l-86.2-86.1L5.2 514.7v118.9h585.3V268.1z" opacity=".3"></path><path d="M234 508.8c-156 222.067-78 111.033 0 0zm309-276.3l-71.3 95.1h-101L236.9 488l-92.1-112.9-38.6 41.6-101 98.1 41.6 41.6 95.1-95.1L234 574.2 397.4 387h104l89.1-118.9z"></path></svg><span class="title">Area</span></a>
+    </div>
+    <div class="popup" id="indicator">
+      <a class="item active" href="#" key="ma5">
+        <span class="title">MA 5</span><span class="shortcut"></span>
+      </a>
+      <a class="item active" href="#" key="ma10">
+        <span class="title">MA 10</span><span class="shortcut"></span>
+      </a>
+      <a class="item" href="#" key="ma20">
+        <span class="title">MA 20</span><span class="shortcut"></span>
+      </a>
+      <a class="item" href="#" key="ma30">
+        <span class="title">MA 30</span><span class="shortcut"></span>
+      </a>
+    </div>
+    <div class="panel-main" id="chart"></div>
+  </div>
+  <script>
+  d3.json("https://raw.githubusercontent.com/vimrus/d3-stock/master/example/sh000001.json", function(data) {
+    var height = $("body").height() - $(".panel-header").height() - 20,
+        width  = $("body").width() - 10,
+        stock = d3.stock();
+
+    var chart = d3.select("#chart").append("svg")
+        .attr("width", width)
+        .attr("height", height)
+        .attr('class', 'chart')
+        .datum(data)
+    var panel = stock(chart);
+
+    // price
+    printPrice(data.list[data.list.length-1]);
+
+    // menu
+    $(".style").click(function(e){
+        $("#style").css({
+            top: "36px",
+            left: $(".style").offset().left,
+            right: "auto",
+            display: "block",
+        });
+
+        $(document).one("click", function(){
+            $("#style").css({display: "none"});
+        });
+        e.stopPropagation();
+    });
+
+    $("#style a").click(function(){
+        $(".style .widget").html($(this).find("svg").prop("outerHTML"));
+        panel.style($(this).attr("key")).drawPrice();
+    });
+
+    $(".indicator").click(function(e){
+        $("#indicator").css({
+            top: "36px",
+            left: $(".indicator").offset().left,
+            right: "auto",
+            display: "block",
+        });
+
+
+        $(document).one("click", function(){
+            $("#indicator").css({display: "none"});
+        });
+        e.stopPropagation();
+    });
+
+    $("#indicator a").click(function(){
+        panel.indicator($(this).attr("key"));
+    });
+
+    $("#chart").on("mousemove", function(){
+        var focus = panel.focus();
+        printPrice(focus);
+    })
+
+    $(window).resize(function(){
+        height = $("body").height() - $(".panel-header").height() - 20;
+        width  = $("body").width() - 10;
+        stock.width(width).height(height).redraw();
+    })
+
+    function printPrice(focus) {
+      var color = focus.open > focus.close ? "green": "red";
+      $(".high").css("color", color).html(Math.round(focus.high));
+      $(".low").css("color", color).html(Math.round(focus.low));
+      $(".open").css("color", color).html(Math.round(focus.open));
+      $(".close").css("color", color).html(Math.round(focus.close));
+    }
+  });
+  </script>
+</body>
+</html>
