@@ -1,7 +1,7 @@
 (function(){
     d3.stock = function() {
-        var chartStyle = "candles",
-            name = "", symbol = "",
+        var source, chartStyle = "candles",
+            name = "", symbol = "", data,
             count = 160, days = 0,
             node, width, height, margin,
             months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
@@ -16,12 +16,12 @@
             focus, current,
             xTip, yTip, xText, yText,
             ticks = [],
-            data, length;
+            length = 200, scale = 1, dragX, begin = 0, end = 0;
 
         function stock(gParent) {
             node = gParent[0][0];
             gParent.each(function(d, i) {
-                data = d;
+                source = d;
             });
 
             chart = d3.select(node);
@@ -31,17 +31,19 @@
             height = gParentSize.height - 30;
         
             margin = {top: 0, right: 50, bottom: 50, left: 0};
-            name   = data.name;
-            symbol = data.symbol;
+            name   = source.name;
+            symbol = source.symbol;
 
             var parseDate  = d3.time.format('%a %b %d %X %Z %Y').parse;
-            data = data.list.map(function(d){ d.time = parseDate(d.time); return d;})
-            length = data.length;
-        
+            data = source.list.map(function(d){ d.time = parseDate(d.time); return d;})
+
             days = (data[length-1].time - data[0].time)/(24*3600*1000);
 
+            begin = data.length > length ? data.length - length : 0;
+            end   = data.length;
+
             stock.setTicks(); 
-            stock.initScale();
+            stock.initScale(begin, end);
         
             //Layers
             bgLayer = chart.append("svg:g").attr("class", "background")
@@ -86,8 +88,31 @@
 
             function zoomed() {
                 d3.select(this).attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
+                var range = (end - begin) * (d3.event.scale/ scale);
+                begin = range < end ?  end - range : 0;
+                stock.redraw();
+
+                scale = d3.event.scale;
             }
             chart.call(zoom);
+
+            // Drag
+            var drag = d3.behavior.drag().on('drag', function(d){
+                    var distance = (d3.event.dx / width) * (end - begin);
+                    if(begin - distance < 0) {
+                        distance = begin;
+                        end = end-begin;
+                        begin = 0;
+                    } else if(end - distance > data.length) {
+                        distance = data.length - end;
+                        begin = data.length - end + begin;
+                        end = data.length;
+                    } else {
+                        begin = begin - distance;
+                        end = end - distance;
+                    }
+                });
+            chart.call(drag);
 
             return stock;
         }
@@ -210,10 +235,10 @@
             }
         }
 
-        stock.initScale = function() {
+        stock.initScale = function(begin, end) {
             // Scale
-            x = d3.scale.linear().range([0, width]).domain([0,data.length]);
-            x1 = d3.scale.linear().range([0, width]).domain([0,data.length]);
+            x = d3.scale.linear().range([0, width]).domain([begin, end]);
+            x1 = d3.scale.linear().range([0, width]).domain([begin, end]);
 
             // Adjust domain for gap of top and bottom.
             var min = d3.min(data, function(d) { return d.low; });
@@ -298,7 +323,7 @@
                     return -y2(d.volume);
                 })
                 .attr("width",function(d){
-                    return width/data.length;
+                    return width/(end-begin);
                 })
                 .attr("height",function(d){
                     return y2(d.volume);
@@ -312,6 +337,7 @@
         stock.drawPrice = function() {
             //Remove old ticks.
             priceLayer.selectAll("*").remove();
+            var range = end - begin;
 
             //Price chart.
             switch(chartStyle) {
@@ -320,8 +346,8 @@
                         .data(data)
                         .enter().append("svg:line")
                         .attr("class", "stem")
-                        .attr("x1", function(d,i) { return Math.round(x1(i) + 0.35*width/data.length);})
-                        .attr("x2", function(d,i) { return Math.round(x1(i) + 0.35*width/data.length);})       
+                        .attr("x1", function(d,i) { return Math.round(x1(i) + 0.5*width/range);})
+                        .attr("x2", function(d,i) { return Math.round(x1(i) + 0.5*width/range);})       
                         .attr("y1", function(d) { return y(d.high);})
                         .attr("y2", function(d) { return y(d.low); })
                         .attr("stroke", "#5A5A5A")
@@ -330,10 +356,10 @@
                     priceLayer.selectAll("rect.k")
                         .data(data)
                         .enter().append("svg:rect")
-                        .attr("x", function(d,i) { return x1(i); })
+                        .attr("x", function(d,i) { return x1(i + 0.15); })
                         .attr("y", function(d) { return y(d.open > d.close ? d.open : d.close);})
                         .attr("height", function(d) {return d.open > d.close ? y(d.close) - y(d.open) : y(d.open) - y(d.close);})
-                        .attr("width", function(d) { return Math.round(0.7 * (width)/data.length); })
+                        .attr("width", function(d) { return Math.round(0.7 * (width)/range); })
                         .attr("fill",function(d) { return d.open > d.close ? "#6BA583" : "#D75442";})
                         .attr("stroke",function(d){ return d.open > d.close ? "#386D4E" : "#A03A2D"; })
                         .attr("stroke-width", 1)
@@ -458,7 +484,7 @@
         }
 
         stock.redraw = function() {
-            stock.initScale();
+            stock.initScale(begin, end);
             stock.drawBackground();
             stock.drawAxis();
             stock.drawVolume();
